@@ -1,0 +1,45 @@
+version: "3"
+services:
+  db:
+    image : mysql:latest
+    container_name: sample-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      # dbのデータをlocalに保存する
+      - ./db/mysql:/var/lib/mysql
+      - ./config.cnf:/etc/mysql/conf.d/config.cnf
+      - ./init-dump:/docker-entrypoint-initdb.d
+      - ./:/app/src
+    command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    working_dir: /app/src
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test1234
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+  
+  go:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: data-platform-authenticator
+    environment:
+      DB_PORT: 3306
+      HOST_NAME: sample-mysql
+      MAX_IDLE_CON: 5
+      MAX_LIFE_TIME: 24
+      MAX_OPEN_CON: 10
+      NAME: XXXXXXXX
+      PRIVATE_KEY: XXXXXXXX
+      SERVER_PORT: 50500
+      SHUT_DOWN_WAIT_TIME: 1
+      TABLE_NAME: Users
+      USER_NAME: XXXXXXXX
+      USER_PASSWORD: XXXXXXXX
+    tty: true
+    depends_on:
+      - db
+      # db:
+      #   condition: service_healthy

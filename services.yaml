@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: data-platform-authenticator
+  name: data-platform-authenticator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: data-platform-authenticator
+  template:
+    metadata:
+      labels:
+        run: data-platform-authenticator
+    spec:
+      nodeName: worker
+      hostname: data-platform-authenticator
+      containers:
+        - name: data-platform-authenticator
+          image: latonaio/data-platform-authenticator
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: "DB_PORT"
+              value: "30010"
+            - name: "HOST_NAME"
+              value: "XXXXXXXX"
+            - name: "MAX_IDLE_CON"
+              value: "5"
+            - name: "MAX_LIFE_TIME"
+              value: "24"
+            - name: "MAX_OPEN_CON"
+              value: "10"
+            - name: "NAME"
+              value: "Authenticator"
+            - name: "PRIVATE_KEY"
+              value: "XXXXXXXX"
+            - name: "SERVER_PORT"
+              value: "50500"
+            - name: "SHUT_DOWN_WAIT_TIME"
+              value: "1"
+            - name: "TABLE_NAME"
+              value: "XXXXXXXX"
+            - name: "USER_NAME"
+              value: "XXXXXXXX"
+            - name: "USER_PASSWORD"
+              value: "XXXXXXXX"
+          resources:
+            limits:
+              cpu: "1"
+              memory: "200Mi"
+            requests:
+              cpu: "0.5"
+              memory: "100Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: data-platform-authenticator
+  name: data-platform-authenticator
+spec:
+  selector:
+    run: data-platform-authenticator
+  type: NodePort
+  ports:
+  - name: data-platform-authenticator
+    protocol: TCP
+    port: 50500         # kube内のPod間で通信する際に使うポート番号
+    nodePort: 30020     # kube外からの通信に必要なポート番号
+

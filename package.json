@@ -1,0 +1,25 @@
+{
+  "name": "data-platform-authenticator",
+  "version": "1.0.0",
+  "description": "## 概要 authenticator は、任意のアプリケーション・システム・マイクロサービス等に対して、認証機能を提供するマイクロサービスです。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/latonaio/data-platform-authenticator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/latonaio/data-platform-authenticator/issues"
+  },
+  "homepage": "https://github.com/latonaio/data-platform-authenticator#readme",
+  "devDependencies": {
+    "json5": "^2.2.1"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  driver: "mysql",
+  user: "XXXXXXXX",
+  password: "XXXXXXXX",
+  address: "XXXXXXXX",
+  port: "3306",
+  database: "test"
+}
