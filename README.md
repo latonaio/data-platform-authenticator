@@ -392,12 +392,22 @@ database:
   # 他はそのまま
 ```
 
-#### 登録
+#### ユーザ情報の登録
 ```
 curl -X POST http://localhost:1323/users -d login_id=Sample_user -d password=OK_password
 ```
 
-#### 取得
+#### ユーザ情報の更新
+```
+curl -X PUT http://localhost:1323/users/login_id/Sample_user -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
+```
+
+#### ユーザ情報の削除
+```
+curl -X POST http://localhost:1323/users/login_id/Sample_user -d password=OK_password
+```
+
+#### ユーザIDの取得
 ```
 curl -X GET http://localhost:1323/users/login_id/Sample_user
 ```
@@ -406,17 +416,6 @@ curl -X GET http://localhost:1323/users/login_id/Sample_user
 ```
 curl -X POST http://localhost:1323/login -d login_id=Sample_user -d password=OK_password
 ```
-
-#### 更新
-```
-curl -X PUT http://localhost:1323/users/login_id/Sample_user -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
-```
-
-#### 削除
-```
-curl -X POST http://localhost:1323/users/login_id/Sample_user -d password=OK_password
-```
-
 
 ## 入力規則
 user を新規登録する際は下記の入力規則にしたがって登録してください。
