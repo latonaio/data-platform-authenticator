@@ -20,7 +20,7 @@ $ brew install kubectl
 1. リポジトリをクローンする。
 ```shell
 $ git clone https://github.com/latonaio/data-platform-authenticator.git
-$ cd authenticator
+$ cd data-platform-authenticator
 ```
 
 2. `sh scripts/setup-configs.sh` を実行する。   
@@ -394,27 +394,27 @@ database:
 
 #### ユーザ情報の登録
 ```
-curl -X POST http://localhost:1323/users -d login_id=Sample_user -d password=OK_password
+curl -X POST http://localhost:50500/users -d login_id=Sample_user -d password=OK_password
 ```
 
 #### ユーザ情報の更新
 ```
-curl -X PUT http://localhost:1323/users/login_id/Sample_user -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
+curl -X PUT http://localhost:50500/users/login_id/Sample_user -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
 ```
 
 #### ユーザ情報の削除
 ```
-curl -X POST http://localhost:1323/users/login_id/Sample_user -d password=OK_password
+curl -X POST http://localhost:50500/users/login_id/Sample_user -d password=OK_password
 ```
 
 #### ユーザIDの取得
 ```
-curl -X GET http://localhost:1323/users/login_id/Sample_user
+curl -X GET http://localhost:50500/users/login_id/Sample_user
 ```
 
 #### ログイン
 ```
-curl -X POST http://localhost:1323/login -d login_id=Sample_user -d password=OK_password
+curl -X POST http://localhost:50500/login -d login_id=Sample_user -d password=OK_password
 ```
 
 ## 入力規則

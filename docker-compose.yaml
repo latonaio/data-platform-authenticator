@@ -11,13 +11,14 @@ services:
       - ./config.cnf:/etc/mysql/conf.d/config.cnf
       - ./init-dump:/docker-entrypoint-initdb.d
       - ./:/app/src
+      - ../data-platform-authenticator-mysql-kube/data-platform-authenticator-sql-business-user-data.sql:/app/src/data-platform-authenticator-sql-business-user-data.sql
     command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     working_dir: /app/src
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test
-      MYSQL_USER: test
-      MYSQL_PASSWORD: test1234
+      MYSQL_ROOT_PASSWORD: XXXXXXXXX
+      MYSQL_DATABASE: DataPlatformAuthenticatorMySQLKube
+      MYSQL_USER: XXXXXXXXX
+      MYSQL_PASSWORD: XXXXXXXXX
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
   
   go:

@@ -46,34 +46,19 @@ show-users:
 # ユーザーに全ての権限を付与する
 grant-authority:
 	docker exec -it $(CONTAINER_NAME) sh -c "mysql --defaults-extra-file=$(CONF_PATH) -e \"GRANT ALL ON *.* TO $(DB_USER_NAME)@localhost;\""
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql --defaults-extra-file=$(CONF_PATH) -e \"GRANT ALL ON *.* TO $(DB_USER_NAME)@'%';\""
 
 # データベースを作成する
 create-database:
-	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS Authenticator DEFAULT CHARACTER SET UTF8;\""
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS DataPlatformAuthenticatorSQL DEFAULT CHARACTER SET UTF8;\""
 
 # データベース一覧を表示する
 show-databases:
 	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"SHOW DATABASES;\""
 
-# # テーブルを作成する
-# create-table:
-# 	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \ 
-# 	cat << 'EOF'
-# 	\"USE Authenticator; \
-# 	CREATE TABLE `Users` ( \
-#     `id` int AUTO_INCREMENT, \
-# 		`login_id` varchar(20) NOT NULL DEFAULT '', \
-# 		`password` varchar(70) NOT NULL DEFAULT '', \
-# 		`qos` varchar(20) NOT NULL DEFAULT 'default', \
-# 		`is_encrypt` BOOLEAN NOT NULL DEFAULT TRUE, \
-# 		`last_login_at` datetime DEFAULT NULL, \
-# 		`created_at` datetime DEFAULT NULL, \
-# 		`updated_at` datetime DEFAULT NULL, \
-# 		`deleted_at` datetime DEFAULT NULL, \
-# 		UNIQUE KEY (`login_id`), \
-# 		PRIMARY KEY (`id`) \
-# 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\""
-# 	EOF
+# テーブルを作成する
+create-table:
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -D DataPlatformAuthenticatorSQL < data-platform-authenticator-sql-business-user-data.sql"
 
 # ユーザーを削除する
 delete-user:
