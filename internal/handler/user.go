@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"data-platform-authenticator/internal/crypto"
+	"data-platform-authenticator/internal/models"
+	customers "data-platform-authenticator/pkg/response"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"jwt-authentication-golang/internal/crypto"
-	"jwt-authentication-golang/internal/models"
-	customers "jwt-authentication-golang/pkg/response"
 )
 
 type UserParam struct {

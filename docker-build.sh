@@ -5,10 +5,11 @@ DATE="$(date "+%Y%m%d%H%M")"
 REPOSITORY_PREFIX="latonaio"
 SERVICE_NAME="data-platform-authenticator"
 
-PRIVATE_KEY="$(cat private.key)"
+PRIVATE_KEY="$(cat private.pem)"
+PUBLIC_KEY="$(cat public.pem)"
 
 # build時に環境変数PRIVATE_KEYに生成したprivate.keyの中身をセット
-docker build --build-arg PRIVATE_KEY="${PRIVATE_KEY}" -t ${SERVICE_NAME}:"${DATE}" -f Dockerfile .
+docker build --build-arg PRIVATE_KEY="${PRIVATE_KEY}" --build-arg PUBLIC_KEY="${PUBLIC_KEY}" -t ${SERVICE_NAME}:"${DATE}" -f Dockerfile .
 # DOCKER_BUILDKIT=1 docker build --progress=plain -t ${SERVICE_NAME}:"${DATE}" .
 
 # tagging

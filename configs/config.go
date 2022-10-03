@@ -10,6 +10,7 @@ type Configs struct {
 	Database   Database
 	Jwt        Jwt
 	PrivateKey string
+	PublicKey  string
 }
 
 type Server struct {
@@ -54,6 +55,7 @@ func New() (*Configs, error) {
 			Exp: parseInt64(os.Getenv("EXP")),
 		},
 		PrivateKey: os.Getenv("PRIVATE_KEY"),
+		PublicKey:  os.Getenv("PUBLIC_KEY"),
 	}
 
 	return cfg, nil

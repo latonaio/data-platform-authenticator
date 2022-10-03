@@ -6,3 +6,4 @@ db/mysql/
 public.pem
 private.pem
 data-platform-authenticator-sql-business-user-data.sql
+tmp

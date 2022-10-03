@@ -1,15 +1,14 @@
 version: "3"
 services:
-  db:
+  data-platform-authenticator-database:
     image : mysql:latest
-    container_name: sample-mysql
+    container_name: data-platform-authenticator-database
     ports:
       - "3306:3306"
     volumes:
-      # dbのデータをlocalに保存する
       - ./db/mysql:/var/lib/mysql
       - ./config.cnf:/etc/mysql/conf.d/config.cnf
-      - ./init-dump:/docker-entrypoint-initdb.d
+#      - ./init-dump:/docker-entrypoint-initdb.d
       - ./:/app/src
       - ../data-platform-authenticator-mysql-kube/data-platform-authenticator-sql-business-user-data.sql:/app/src/data-platform-authenticator-sql-business-user-data.sql
     command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -20,27 +19,41 @@ services:
       MYSQL_USER: XXXXXXXXX
       MYSQL_PASSWORD: XXXXXXXXX
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-  
-  go:
+    networks:
+      application:
+        ipv4_address: XXXXXXXXXXXX
+
+  data-platform-authenticator-application:
     build:
       context: .
-      dockerfile: ./Dockerfile
-    container_name: data-platform-authenticator
+      dockerfile: ./Dockerfile_Hotreload
+    container_name: data-platform-authenticator-application
+    ports:
+      - "50500:50500"
+    volumes:
+      - .:/opt/app
     environment:
       DB_PORT: 3306
-      HOST_NAME: sample-mysql
+      HOST_NAME: XXXXXXXXXXXX
       MAX_IDLE_CON: 5
       MAX_LIFE_TIME: 24
       MAX_OPEN_CON: 10
-      NAME: XXXXXXXX
-      PRIVATE_KEY: XXXXXXXX
+      NAME: DataPlatformAuthenticatorSQL
+      PRIVATE_KEY: ${private.pem}
       SERVER_PORT: 50500
       SHUT_DOWN_WAIT_TIME: 1
-      TABLE_NAME: Users
+      TABLE_NAME: data_platform_authenticator_business_user_data
       USER_NAME: XXXXXXXX
       USER_PASSWORD: XXXXXXXX
+      EXP: 24
     tty: true
-    depends_on:
-      - db
-      # db:
-      #   condition: service_healthy
+    networks:
+      application:
+        ipv4_address: XXXXXXXXXXXX
+
+networks:
+  application:
+    ipam:
+      driver: default
+      config:
+        - subnet: XXXXXXXXXXXX/16

@@ -1,15 +1,18 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"data-platform-authenticator/configs"
+	"data-platform-authenticator/internal/crypto"
+	"data-platform-authenticator/internal/models"
+	customers "data-platform-authenticator/pkg/response"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/labstack/echo/v4"
-	"jwt-authentication-golang/configs"
-	"jwt-authentication-golang/internal/crypto"
-	"jwt-authentication-golang/internal/models"
-	customers "jwt-authentication-golang/pkg/response"
 )
 
 type UserLoginParam struct {
@@ -19,6 +22,11 @@ type UserLoginParam struct {
 
 var jwtExp int64
 var privateKeyPem string
+var publicKeyPem string
+
+type TokenParam struct {
+	JwtToken string `json:"jwt_token" form:"jwt_token"`
+}
 
 func init() {
 	cfgs, err := configs.New()
@@ -27,6 +35,7 @@ func init() {
 	}
 	jwtExp = cfgs.Jwt.Exp
 	privateKeyPem = cfgs.PrivateKey
+	publicKeyPem = cfgs.PublicKey
 }
 
 func EnsureUser(c echo.Context) error {
@@ -57,6 +66,9 @@ func EnsureUser(c echo.Context) error {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user_id"] = user.User().ID
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExp)).Unix()
+
+	//privateKeyPem, err := ioutil.ReadFile("private.pem")
+
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKeyPem))
 	if err != nil {
 		c.Logger().Printf("Failed to parse private key: %v", err)
@@ -73,4 +85,40 @@ func EnsureUser(c echo.Context) error {
 		return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
 	}
 	return c.JSON(http.StatusOK, customers.JWTResponseFormat{Jwt: signedToken})
+}
+
+func VerifyJWTToken(c echo.Context) error {
+	param := &TokenParam{}
+	err := c.Bind(param)
+	if err != nil {
+		return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+	}
+
+	var jwtStr string
+
+	for key, values := range c.Request().Header {
+		if key == "Authorization" {
+			jwtStr = strings.Replace(values[0], "Bearer ", "", 1)
+		}
+	}
+
+	//publicKeyPem, err := ioutil.ReadFile("public.pem")
+
+	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyPem))
+	if err != nil {
+		c.Logger().Printf("Failed to parse public key: %v", err)
+		return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+	}
+
+	parsedToken, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != jwt.SigningMethodRS256 {
+			return nil, errors.New("invalid signing method")
+		}
+		return publicKey, nil
+	})
+
+	claims := parsedToken.Claims.(jwt.MapClaims)
+	claimsString := fmt.Sprintf("%v", claims["user_id"])
+
+	return c.JSON(http.StatusOK, customers.UserResponseFormat{LoginID: claimsString})
 }

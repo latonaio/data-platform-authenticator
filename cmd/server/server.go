@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	configs "jwt-authentication-golang/configs"
-	"jwt-authentication-golang/pkg/db"
+	configs "data-platform-authenticator/configs"
+	"data-platform-authenticator/pkg/db"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"jwt-authentication-golang/pkg/server"
+	"data-platform-authenticator/pkg/server"
 )
 
 func main() {

@@ -1,8 +1,8 @@
 package route
 
 import (
+	"data-platform-authenticator/internal/handler"
 	"github.com/labstack/echo/v4"
-	"jwt-authentication-golang/internal/handler"
 )
 
 func RegisterRouting(e *echo.Echo) {
@@ -16,4 +16,6 @@ func RegisterRouting(e *echo.Echo) {
 	e.GET("/users/login_id/:login_id", handler.GetUser)
 	// ユーザー削除
 	e.POST("/users/login_id/:login_id", handler.DeleteUser)
+	// トークン確認
+	e.POST("/token/verify", handler.VerifyJWTToken)
 }

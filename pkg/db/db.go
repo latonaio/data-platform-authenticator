@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"data-platform-authenticator/configs"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"jwt-authentication-golang/configs"
 )
 
 type DB struct {

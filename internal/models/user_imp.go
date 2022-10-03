@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"data-platform-authenticator/pkg/db"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"jwt-authentication-golang/pkg/db"
 )
 
 func NewUser() UserIF {

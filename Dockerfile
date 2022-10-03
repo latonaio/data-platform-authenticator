@@ -20,6 +20,12 @@ RUN apk add --no-cache libc6-compat
 ENV SERVICE=data-platform-authenticator \
     APP_DIR="${AION_HOME}/${POSITION}/${SERVICE}"
 
+ARG PRIVATE_KEY
+ENV PRIVATE_KEY=$PRIVATE_KEY
+
+ARG PUBLIC_KEY
+ENV PUBLIC_KEY=$PUBLIC_KEY
+
 WORKDIR ${AION_HOME}
 
 COPY --from=builder /go/src/github.com/latonaio/data-platform-authenticator .

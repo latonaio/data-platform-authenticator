@@ -35,6 +35,11 @@ generate-key-pair:
 	openssl genrsa 4096 > private.key
 	openssl rsa -pubout < private.key > public.key
 
+.PHONY: generate-pem-key-pair
+generate-pem-key-pair:
+	openssl genrsa 4096 > private.pem
+	openssl rsa -pubout < private.pem > public.pem
+
 # ユーザーを作成する
 create-user:
 	docker exec -it $(CONTAINER_NAME) sh -c "mysql --defaults-extra-file=$(CONF_PATH) -t --show-warnings -e \"CREATE USER $(DB_USER_NAME)@localhost IDENTIFIED BY '$(DB_USER_PASSWORD)';\""
@@ -50,7 +55,8 @@ grant-authority:
 
 # データベースを作成する
 create-database:
-	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS DataPlatformAuthenticatorSQL DEFAULT CHARACTER SET UTF8;\""
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS DataPlatformAuthenticatorMySQLKube DEFAULT CHARACTER SET UTF8;\""
+
 
 # データベース一覧を表示する
 show-databases:
@@ -58,8 +64,11 @@ show-databases:
 
 # テーブルを作成する
 create-table:
-	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -D DataPlatformAuthenticatorSQL < data-platform-authenticator-sql-business-user-data.sql"
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -D DataPlatformAuthenticatorMySQLKube < data-platform-authenticator-sql-business-user-data.sql"
 
 # ユーザーを削除する
 delete-user:
 	docker exec -it $(CONTAINER_NAME) sh -c "mysql --defaults-extra-file=$(CONF_PATH) -e \"DROP USER $(DB_USER_NAME)@localhost;\""
+
+show-private-pem:
+	bash scripts/show-private-pem.sh

@@ -2,11 +2,11 @@ package server
 
 import (
 	"context"
+	configs "data-platform-authenticator/configs"
+	"data-platform-authenticator/internal/route"
+	customers "data-platform-authenticator/pkg/response"
 	"fmt"
 	"github.com/labstack/echo/v4/middleware"
-	configs "jwt-authentication-golang/configs"
-	"jwt-authentication-golang/internal/route"
-	customers "jwt-authentication-golang/pkg/response"
 
 	"github.com/labstack/echo/v4"
 )

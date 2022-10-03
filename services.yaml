@@ -22,9 +22,9 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: "DB_PORT"
-              value: "30012"
+              value: "3306"
             - name: "HOST_NAME"
-              value: "XXXXXXXX"
+              value: "data-platform-authenticator-mysql-kube"
             - name: "MAX_IDLE_CON"
               value: "5"
             - name: "MAX_LIFE_TIME"
@@ -32,7 +32,9 @@ spec:
             - name: "MAX_OPEN_CON"
               value: "10"
             - name: "NAME"
-              value: "DataPlatformAuthenticatorSQL"
+              value: "DataPlatformAuthenticatorMySQLKube"
+            - name: "PRIVATE_KEY"
+              value: "XXXXXXXX"
             - name: "SERVER_PORT"
               value: "50500"
             - name: "SHUT_DOWN_WAIT_TIME"

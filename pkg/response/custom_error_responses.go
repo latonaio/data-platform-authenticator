@@ -3,8 +3,8 @@ package custmres
 import (
 	"net/http"
 
+	customError "data-platform-authenticator/pkg/error"
 	"github.com/labstack/echo/v4"
-	customError "jwt-authentication-golang/pkg/error"
 )
 
 type ResponseFormat struct {
