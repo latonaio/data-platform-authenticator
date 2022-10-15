@@ -18,7 +18,7 @@ RUN go build -o data-platform-authenticator ./cmd/server
 FROM alpine:3.14
 RUN apk add --no-cache libc6-compat
 ENV SERVICE=data-platform-authenticator \
-    APP_DIR="${AION_HOME}/${POSITION}/${SERVICE}"
+    APP_DIR="/app/src/${SERVICE}"
 
 ARG PRIVATE_KEY
 ENV PRIVATE_KEY=$PRIVATE_KEY
@@ -26,7 +26,7 @@ ENV PRIVATE_KEY=$PRIVATE_KEY
 ARG PUBLIC_KEY
 ENV PUBLIC_KEY=$PUBLIC_KEY
 
-WORKDIR ${AION_HOME}
+WORKDIR ${APP_DIR}
 
 COPY --from=builder /go/src/github.com/latonaio/data-platform-authenticator .
 

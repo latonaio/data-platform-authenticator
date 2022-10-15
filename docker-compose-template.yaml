@@ -8,7 +8,7 @@ services:
     volumes:
       - ./db/mysql:/var/lib/mysql
       - ./config.cnf:/etc/mysql/conf.d/config.cnf
-#      - ./init-dump:/docker-entrypoint-initdb.d
+      #      - ./init-dump:/docker-entrypoint-initdb.d
       - ./:/app/src
       - ../data-platform-authenticator-mysql-kube/data-platform-authenticator-sql-business-user-data.sql:/app/src/data-platform-authenticator-sql-business-user-data.sql
     command: mysqld --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -39,12 +39,12 @@ services:
       MAX_LIFE_TIME: 24
       MAX_OPEN_CON: 10
       NAME: DataPlatformAuthenticatorSQL
-      PRIVATE_KEY: ${private.pem}
+      PRIVATE_KEY: ${PRIVATE_KEY}
       SERVER_PORT: 50500
       SHUT_DOWN_WAIT_TIME: 1
       TABLE_NAME: data_platform_authenticator_business_user_data
-      USER_NAME: XXXXXXXX
-      USER_PASSWORD: XXXXXXXX
+      USER_NAME: ${MYSQL_USER_NAME}
+      USER_PASSWORD: ${MYSQL_USER_PASSWORD}
       EXP: 24
     tty: true
     networks:

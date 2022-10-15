@@ -7,3 +7,5 @@ public.pem
 private.pem
 data-platform-authenticator-sql-business-user-data.sql
 tmp
+env.json
+docker-compose.yaml
