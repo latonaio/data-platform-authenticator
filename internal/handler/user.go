@@ -7,16 +7,17 @@ import (
 
 	"data-platform-authenticator/internal/crypto"
 	"data-platform-authenticator/internal/models"
-	customers "data-platform-authenticator/pkg/response"
+	"data-platform-authenticator/pkg/response"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
 
 type UserParam struct {
-	LoginID   string `json:"login_id" form:"login_id"`
-	Password  string `json:"password" form:"password"`
-	Qos       string `json:"qos" form:"qos"`
-	IsEncrypt bool   `json:"is_encrypt" form:"is_encrypt"`
+	LoginID         string `json:"login_id" form:"login_id"`
+	BusinessPartner int    `json:"business_partner" form:"business_partner"`
+	Password        string `json:"password" form:"password"`
+	Qos             string `json:"qos" form:"qos"`
+	IsEncrypt       bool   `json:"is_encrypt" form:"is_encrypt"`
 }
 
 func RegisterUser(c echo.Context) error {
@@ -24,19 +25,20 @@ func RegisterUser(c echo.Context) error {
 	param.IsEncrypt = true // default value
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
 	}
 
 	// validate input fields.
 	unverifiedUser := &models.User{
-		LoginID:  param.LoginID,
-		Password: param.Password,
-		Qos:      models.ToQos(param.Qos),
+		BusinessPartner: param.BusinessPartner,
+		LoginID:         param.LoginID,
+		Password:        param.Password,
+		Qos:             models.ToQos(param.Qos),
 	}
 	if unverifiedUser.NeedsValidation() {
 		if err := unverifiedUser.Validate(); err != nil {
 			c.Logger().Printf("Failed to validate input parameter: %v", err)
-			return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+			return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
 		}
 	}
 
@@ -45,15 +47,16 @@ func RegisterUser(c echo.Context) error {
 	result, err := user.GetByLoginID(param.LoginID)
 	if result != nil && err == nil {
 		c.Logger().Printf("Login id is already used")
-		return c.JSON(customers.Conflict.Code, customers.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Conflict.Message)
 	}
 
 	userImp := &models.User{
-		LoginID:     param.LoginID,
-		Password:    param.Password,
-		Qos:         unverifiedUser.Qos,
-		IsEncrypt:   &param.IsEncrypt,
-		LastLoginAt: nil,
+		BusinessPartner: param.BusinessPartner,
+		LoginID:         param.LoginID,
+		Password:        param.Password,
+		Qos:             unverifiedUser.Qos,
+		IsEncrypt:       &param.IsEncrypt,
+		LastLoginAt:     nil,
 	}
 
 	// encrypt password
@@ -61,7 +64,7 @@ func RegisterUser(c echo.Context) error {
 		encryptedPassword, err := crypto.Encrypt(param.Password)
 		if err != nil {
 			c.Logger().Printf("Failed to encrypt password: %v", err)
-			return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
 		}
 		userImp.Password = encryptedPassword
 	}
@@ -92,7 +95,7 @@ func UpdateUser(c echo.Context) error {
 	param.IsEncrypt = true // default value
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
 	}
 
 	// check existence of user.
@@ -100,35 +103,36 @@ func UpdateUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", param.LoginID)
-			return c.JSON(customers.NotFoundErrRes.Code, customers.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(customers.Conflict.Code, customers.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Conflict.Message)
 	}
 
 	// authenticate old password.
 	if !*result.IsEncrypt {
 		if result.Password != param.OldPassword {
 			c.Logger().Print("Failed to login due to incorrect password")
-			return c.JSON(customers.UnauthorizedRes.Code, customers.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
 		}
 	} else {
 		if err := crypto.CompareHashAndPassword(result.Password, param.OldPassword); err != nil {
 			c.Logger().Printf("Failed to login: %v", err)
-			return c.JSON(customers.UnauthorizedRes.Code, customers.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
 		}
 	}
 
 	userImp := &models.User{
-		LoginID:   param.LoginID,
-		Password:  param.Password,
-		Qos:       models.ToQos(param.Qos),
-		IsEncrypt: &param.IsEncrypt,
+		BusinessPartner: param.BusinessPartner,
+		LoginID:         param.LoginID,
+		Password:        param.Password,
+		Qos:             models.ToQos(param.Qos),
+		IsEncrypt:       &param.IsEncrypt,
 	}
 	if !param.QosExists() {
 		userImp.Qos = result.Qos
@@ -138,7 +142,7 @@ func UpdateUser(c echo.Context) error {
 	if userImp.NeedsValidation() {
 		if err := userImp.Validate(); err != nil {
 			c.Logger().Printf("Failed to validate input parameter: %v", err)
-			return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+			return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
 		}
 	}
 
@@ -147,7 +151,7 @@ func UpdateUser(c echo.Context) error {
 		encryptedPassword, err := crypto.Encrypt(param.Password)
 		if err != nil {
 			c.Logger().Printf("Failed to encrypt password: %v", err)
-			return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
 		}
 		userImp.Password = encryptedPassword
 	}
@@ -165,17 +169,20 @@ func GetUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", loginID)
-			return c.JSON(customers.NotFoundErrRes.Code, customers.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(customers.Conflict.Code, customers.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Conflict.Message)
 	}
-	return c.JSON(http.StatusOK, customers.UserResponseFormat{LoginID: result.LoginID})
+	return c.JSON(http.StatusOK, response.UserResponseFormat{
+		BusinessPartner: string(rune(result.BusinessPartner)),
+		LoginID:         result.LoginID,
+	})
 }
 
 type DeleteUserParam struct {
@@ -183,14 +190,13 @@ type DeleteUserParam struct {
 }
 
 func DeleteUser(c echo.Context) error {
-
 	// ユーザの理論削除を行います。
 	// 具体的な処理としては、ユーザモデルの deleted_at フラグに現在時刻を登録します。
 
 	param := &DeleteUserParam{}
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(customers.BadRequestRes.Code, customers.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
 	}
 	loginID := c.Param("login_id")
 
@@ -198,27 +204,27 @@ func DeleteUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", loginID)
-			return c.JSON(customers.NotFoundErrRes.Code, customers.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(customers.InternalErrRes.Code, customers.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(customers.Conflict.Code, customers.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Conflict.Message)
 	}
 
 	// authenticate password.
 	if !*result.IsEncrypt {
 		if result.Password != param.Password {
 			c.Logger().Print("Failed to login due to incorrect password")
-			return c.JSON(customers.UnauthorizedRes.Code, customers.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
 		}
 	} else {
 		if err := crypto.CompareHashAndPassword(result.Password, param.Password); err != nil {
 			c.Logger().Printf("Failed to login: %v", err)
-			return c.JSON(customers.UnauthorizedRes.Code, customers.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
 		}
 	}
 	now := time.Now()

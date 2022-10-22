@@ -1,4 +1,4 @@
-package custmres
+package response
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type ResponseFormat struct {
+type Format struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
@@ -18,7 +18,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	c.Logger().Error(err)
 }
 
-func generateErrorResponse(err error) ResponseFormat {
+func generateErrorResponse(err error) Format {
 	customerErr, ok := err.(customError.CustomErrMessage)
 	if !ok {
 		return InternalErrRes
@@ -33,27 +33,27 @@ func generateErrorResponse(err error) ResponseFormat {
 }
 
 var (
-	BadRequestRes = ResponseFormat{
+	BadRequestRes = Format{
 		Code:    http.StatusBadRequest,
 		Message: customError.ErrBadRequest.Error(),
 	}
 
-	InternalErrRes = ResponseFormat{
+	InternalErrRes = Format{
 		Code:    http.StatusInternalServerError,
 		Message: customError.ErrInternal.Error(),
 	}
 
-	NotFoundErrRes = ResponseFormat{
+	NotFoundErrRes = Format{
 		Code:    http.StatusNotFound,
 		Message: customError.ErrNotFound.Error(),
 	}
 
-	UnauthorizedRes = ResponseFormat{
+	UnauthorizedRes = Format{
 		Code:    http.StatusUnauthorized,
 		Message: customError.ErrUnauthorized.Error(),
 	}
 
-	Conflict = ResponseFormat{
+	Conflict = Format{
 		Code:    http.StatusConflict,
 		Message: customError.ErrConflict.Error(),
 	}

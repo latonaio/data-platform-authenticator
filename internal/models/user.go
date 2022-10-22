@@ -14,15 +14,16 @@ type UserIF interface {
 }
 
 type User struct {
-	ID          int        `gorm:"primaryKey"`
-	LoginID     string     `gorm:"column:login_id"`
-	Password    string     `gorm:"column:password"`
-	LastLoginAt *time.Time `gorm:"column:last_login_at"`
-	Qos         Qos        `gorm:"column:qos"`
-	IsEncrypt   *bool      `gorm:"column:is_encrypt"`
-	CreatedAt   time.Time  // column name is `created_at`
-	UpdatedAt   time.Time  // column name is `updated_at`
-	DeletedAt   *time.Time // column name is `deleted_at`
+	ID              int        `gorm:"primaryKey"`
+	LoginID         string     `gorm:"column:LoginID"`
+	BusinessPartner int        `gorm:"column:BusinessPartner"`
+	Password        string     `gorm:"column:Password"`
+	LastLoginAt     *time.Time `gorm:"column:LastLoginAt"`
+	Qos             Qos        `gorm:"column:Qos"`
+	IsEncrypt       *bool      `gorm:"column:IsEncrypt"`
+	CreatedAt       time.Time  `gorm:"column:CreatedAt"`
+	UpdatedAt       time.Time  `gorm:"column:UpdatedAt"`
+	DeletedAt       *time.Time `gorm:"column:DeletedAt"`
 }
 
 const (

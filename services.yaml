@@ -19,32 +19,25 @@ spec:
       containers:
         - name: data-platform-authenticator
           image: latonaio/data-platform-authenticator
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
-            - name: "DB_PORT"
-              value: "3306"
-            - name: "HOST_NAME"
-              value: "data-platform-authenticator-mysql-kube"
             - name: "MAX_IDLE_CON"
               value: "5"
             - name: "MAX_LIFE_TIME"
               value: "24"
             - name: "MAX_OPEN_CON"
               value: "10"
-            - name: "NAME"
-              value: "DataPlatformAuthenticatorMySQLKube"
-            - name: "PRIVATE_KEY"
-              value: "XXXXXXXX"
-            - name: "SERVER_PORT"
-              value: "50500"
             - name: "SHUT_DOWN_WAIT_TIME"
               value: "1"
+            - name: "DATA_BASE_NAME"
+              value: "DataPlatformAuthenticatorSQL"
             - name: "TABLE_NAME"
               value: "data_platform_authenticator_business_user_data"
-            - name: "USER_NAME"
-              value: "XXXXXXXX"
-            - name: "USER_PASSWORD"
-              value: "XXXXXXXX"
+            - name: "EXP"
+              value: "24"
+          envFrom:
+            - configMapRef:
+                name: env-config
           resources:
             limits:
               cpu: "1"

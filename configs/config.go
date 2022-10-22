@@ -37,18 +37,18 @@ type Jwt struct {
 func New() (*Configs, error) {
 	cfg := &Configs{
 		Server: Server{
-			Port:             os.Getenv("SERVER_PORT"),
+			Port:             os.Getenv("AUTHENTICATOR_PORT"),
 			ShutdownWaitTIme: parseInt(os.Getenv("SHUT_DOWN_WAIT_TIME")),
 		},
 		Database: Database{
-			HostName:     os.Getenv("HOST_NAME"),
-			Port:         os.Getenv("DB_PORT"),
-			UserName:     os.Getenv("USER_NAME"),
-			UserPassword: os.Getenv("USER_PASSWORD"),
+			HostName:     os.Getenv("DATA_PLATFORM_AUTHENTICATOR_MYSQL_KUBE"),
+			Port:         os.Getenv("MYSQL_PORT"),
+			UserName:     os.Getenv("MYSQL_USER"),
+			UserPassword: os.Getenv("MYSQL_PASSWORD"),
 			MaxOpenCon:   parseInt(os.Getenv("MAX_OPEN_CON")),
 			MaxIdleCon:   parseInt(os.Getenv("MAX_IDLE_CON")),
 			MaxLifeTime:  parseInt(os.Getenv("MAX_LIFE_TIME")),
-			Name:         os.Getenv("NAME"),
+			Name:         os.Getenv("DATA_BASE_NAME"),
 			TableName:    os.Getenv("TABLE_NAME"),
 		},
 		Jwt: Jwt{

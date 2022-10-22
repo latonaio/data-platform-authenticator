@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	configs "data-platform-authenticator/configs"
+	"data-platform-authenticator/configs"
 	"data-platform-authenticator/pkg/db"
 	"log"
 	"os"
@@ -17,7 +17,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	cfgs, err := configs.New()
 	if err != nil {
-		log.Fatalf("failed to get kanban client: %v", err)
+		log.Fatalf("failed to set configs: %v", err)
 	}
 	errC := make(chan error)
 	quitC := make(chan os.Signal, 1)

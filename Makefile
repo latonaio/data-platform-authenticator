@@ -3,6 +3,11 @@ DB_USER_PASSWORD="XXXXXXXX"
 SRC_DIR="/app/src"
 CONF_PATH="$(SRC_DIR)/mysql.conf"
 CONTAINER_NAME="sample-mysql"
+DATE=$(shell date "+%Y%m%d%H%M")
+AWS_ACCESS_KEY_ID=$(shell jq -r .aws.accessKey env.json)
+AWS_SECRET_ACCESS_KEY=$(shell jq -r .aws.secretKey env.json)
+AWS_S3_BUCKET_NAME=$(shell jq -r .aws.s3.bucketName env.json)
+AWS_S3_REGION=$(shell jq -r .aws.s3.bucketName env.json)
 
 convert-json:
 	npx json5 migration_env.json5 | jq . > migration_env.json
@@ -39,6 +44,20 @@ generate-key-pair:
 generate-pem-key-pair:
 	openssl genrsa 4096 > private.pem
 	openssl rsa -pubout < private.pem > public.pem
+
+.PHONY: s3-upload-key
+s3-upload-key:
+	mkdir -p ./s3/$(DATE)
+	cp private.pem ./s3/$(DATE)/
+	cp public.pem ./s3/$(DATE)/
+	export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+	export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+	export AWS_DEFAULT_REGION=$(AWS_S3_REGION)
+	aws s3 cp ./s3/$(DATE) s3://$(AWS_S3_BUCKET_NAME)/$(DATE) --recursive
+
+.PHONY: generate-docker-compose-yaml
+generate-docker-compose-yaml:
+	bash generateDockerComposeYaml.sh
 
 # ユーザーを作成する
 create-user:

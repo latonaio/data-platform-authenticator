@@ -30,7 +30,7 @@ func (u *User) Update() error {
 }
 
 func (u *User) Login() error {
-	result := db.ConPool.Con.Model(u).UpdateColumn("last_login_at", time.Now())
+	result := db.ConPool.Con.Model(u).UpdateColumn("LastLoginAt", time.Now())
 	if result.Error != nil {
 		return result.Error
 	}
@@ -38,7 +38,7 @@ func (u *User) Login() error {
 }
 
 func (u *User) GetByLoginID(loginID string) (*User, error) {
-	result := db.ConPool.Con.Model(u).Where("login_id = ?", loginID).First(u)
+	result := db.ConPool.Con.Model(u).Where("LoginID = ?", loginID).First(u)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -55,6 +55,7 @@ func (u *User) User() *User {
 
 func (u *User) SetUser(user *User) {
 	u.LoginID = user.LoginID
+	u.BusinessPartner = user.BusinessPartner
 	u.Password = user.Password
 	u.Qos = user.Qos
 	u.IsEncrypt = user.IsEncrypt
