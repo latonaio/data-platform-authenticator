@@ -10,6 +10,7 @@ type UserIF interface {
 	Update() error
 	Login() error
 	GetByLoginID(loginID string) (*User, error)
+	GetByLoginIdAndBusinessPartner(loginID string, businessPartner int) (*User, error)
 	NeedsValidation() bool
 }
 

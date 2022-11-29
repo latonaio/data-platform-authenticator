@@ -35,16 +35,29 @@ spec:
               value: "data_platform_authenticator_business_user_data"
             - name: "EXP"
               value: "24"
+#            - name: AUTHENTICATOR_PRIVATE_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  name: env-secret
+#                  key: AUTHENTICATOR_PRIVATE_KEY
+#            - name: AUTHENTICATOR_PUBLIC_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  name: env-secret
+#                  key: AUTHENTICATOR_PUBLIC_KEY
           envFrom:
             - configMapRef:
                 name: env-config
-          resources:
-            limits:
-              cpu: "1"
-              memory: "200Mi"
-            requests:
-              cpu: "0.5"
-              memory: "100Mi"
+            - secretRef:
+                name: env-secret
+          # todo resource を確保してしまうと落ちてしまう可能性があるためいったんコメントアウト
+#          resources:
+#            limits:
+#              cpu: "1"
+#              memory: "200Mi"
+#            requests:
+#              cpu: "0.5"
+#              memory: "100Mi"
 ---
 apiVersion: v1
 kind: Service

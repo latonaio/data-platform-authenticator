@@ -8,8 +8,8 @@ authenticatorPort=$(jq -r .authenticator.port env.json)
 
 replacedPrivateKey=$(awk 'BEGIN{ ORS = "\\n" }{ print $0 }' private.pem)
 replacedPublicKey=$(awk 'BEGIN{ ORS = "\\n" }{ print $0 }' public.pem)
-export PRIVATE_KEY=$replacedPrivateKey
-export PUBLIC_KEY=$replacedPublicKey
+export AUTHENTICATOR_PRIVATE_KEY=$replacedPrivateKey
+export AUTHENTICATOR_PUBLIC_KEY=$replacedPublicKey
 export MYSQL_USER_NAME=$mysqlUsername
 export MYSQL_USER_PASSWORD=$mysqlUserPassword
 export AUTHENTICATOR_PORT=$authenticatorPort

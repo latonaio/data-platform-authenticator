@@ -54,8 +54,8 @@ func New() (*Configs, error) {
 		Jwt: Jwt{
 			Exp: parseInt64(os.Getenv("EXP")),
 		},
-		PrivateKey: os.Getenv("PRIVATE_KEY"),
-		PublicKey:  os.Getenv("PUBLIC_KEY"),
+		PrivateKey: os.Getenv("AUTHENTICATOR_PRIVATE_KEY"),
+		PublicKey:  os.Getenv("AUTHENTICATOR_PUBLIC_KEY"),
 	}
 
 	return cfg, nil

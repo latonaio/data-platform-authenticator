@@ -20,12 +20,6 @@ RUN apk add --no-cache libc6-compat
 ENV SERVICE=data-platform-authenticator \
     APP_DIR="/app/src/${SERVICE}"
 
-ARG PRIVATE_KEY
-ENV PRIVATE_KEY=$PRIVATE_KEY
-
-ARG PUBLIC_KEY
-ENV PUBLIC_KEY=$PUBLIC_KEY
-
 WORKDIR ${APP_DIR}
 
 COPY --from=builder /go/src/github.com/latonaio/data-platform-authenticator .

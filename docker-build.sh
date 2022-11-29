@@ -10,7 +10,7 @@ PUBLIC_KEY="$(cat public.pem)"
 
 # todo kubernetes の secret を検討した後必要であれが kubernetes secret を使う
 # build時に環境変数PRIVATE_KEYに生成したprivate.keyの中身をセット
-docker build --build-arg PRIVATE_KEY="${PRIVATE_KEY}" --build-arg PUBLIC_KEY="${PUBLIC_KEY}" -t ${SERVICE_NAME}:"${DATE}" -f Dockerfile .
+docker build -t ${SERVICE_NAME}:"${DATE}" -f Dockerfile .
 # DOCKER_BUILDKIT=1 docker build --progress=plain -t ${SERVICE_NAME}:"${DATE}" .
 
 # tagging

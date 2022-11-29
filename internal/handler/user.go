@@ -25,7 +25,10 @@ func RegisterUser(c echo.Context) error {
 	param.IsEncrypt = true // default value
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.Format{
+			Code:    response.BadRequestRes.Code,
+			Message: response.BadRequestRes.Message,
+		})
 	}
 
 	// validate input fields.
@@ -38,7 +41,10 @@ func RegisterUser(c echo.Context) error {
 	if unverifiedUser.NeedsValidation() {
 		if err := unverifiedUser.Validate(); err != nil {
 			c.Logger().Printf("Failed to validate input parameter: %v", err)
-			return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
+			return c.JSON(response.BadRequestRes.Code, response.Format{
+				Code:    response.BadRequestRes.Code,
+				Message: response.BadRequestRes.Message,
+			})
 		}
 	}
 
@@ -47,7 +53,10 @@ func RegisterUser(c echo.Context) error {
 	result, err := user.GetByLoginID(param.LoginID)
 	if result != nil && err == nil {
 		c.Logger().Printf("Login id is already used")
-		return c.JSON(response.Conflict.Code, response.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Format{
+			Code:    response.Conflict.Code,
+			Message: response.Conflict.Message,
+		})
 	}
 
 	userImp := &models.User{
@@ -64,7 +73,10 @@ func RegisterUser(c echo.Context) error {
 		encryptedPassword, err := crypto.Encrypt(param.Password)
 		if err != nil {
 			c.Logger().Printf("Failed to encrypt password: %v", err)
-			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.Format{
+				Code:    response.InternalErrRes.Code,
+				Message: response.InternalErrRes.Message,
+			})
 		}
 		userImp.Password = encryptedPassword
 	}
@@ -95,7 +107,10 @@ func UpdateUser(c echo.Context) error {
 	param.IsEncrypt = true // default value
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.Format{
+			Code:    response.BadRequestRes.Code,
+			Message: response.BadRequestRes.Message,
+		})
 	}
 
 	// check existence of user.
@@ -103,27 +118,42 @@ func UpdateUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", param.LoginID)
-			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.Format{
+				Code:    response.NotFoundErrRes.Code,
+				Message: response.NotFoundErrRes.Message,
+			})
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.Format{
+				Code:    response.InternalErrRes.Code,
+				Message: response.InternalErrRes.Message,
+			})
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(response.Conflict.Code, response.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Format{
+			Code:    response.Conflict.Code,
+			Message: response.Conflict.Message,
+		})
 	}
 
 	// authenticate old password.
 	if !*result.IsEncrypt {
 		if result.Password != param.OldPassword {
 			c.Logger().Print("Failed to login due to incorrect password")
-			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.Format{
+				Code:    response.UnauthorizedRes.Code,
+				Message: response.UnauthorizedRes.Message,
+			})
 		}
 	} else {
 		if err := crypto.CompareHashAndPassword(result.Password, param.OldPassword); err != nil {
 			c.Logger().Printf("Failed to login: %v", err)
-			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.Format{
+				Code:    response.UnauthorizedRes.Code,
+				Message: response.UnauthorizedRes.Message,
+			})
 		}
 	}
 
@@ -142,7 +172,10 @@ func UpdateUser(c echo.Context) error {
 	if userImp.NeedsValidation() {
 		if err := userImp.Validate(); err != nil {
 			c.Logger().Printf("Failed to validate input parameter: %v", err)
-			return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
+			return c.JSON(response.BadRequestRes.Code, response.Format{
+				Code:    response.BadRequestRes.Code,
+				Message: response.BadRequestRes.Message,
+			})
 		}
 	}
 
@@ -151,7 +184,10 @@ func UpdateUser(c echo.Context) error {
 		encryptedPassword, err := crypto.Encrypt(param.Password)
 		if err != nil {
 			c.Logger().Printf("Failed to encrypt password: %v", err)
-			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.Format{
+				Code:    response.InternalErrRes.Code,
+				Message: response.InternalErrRes.Message,
+			})
 		}
 		userImp.Password = encryptedPassword
 	}
@@ -169,15 +205,24 @@ func GetUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", loginID)
-			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.Format{
+				Code:    response.NotFoundErrRes.Code,
+				Message: response.NotFoundErrRes.Message,
+			})
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.Format{
+				Code:    response.InternalErrRes.Code,
+				Message: response.InternalErrRes.Message,
+			})
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(response.Conflict.Code, response.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Format{
+			Code:    response.Conflict.Code,
+			Message: response.Conflict.Message,
+		})
 	}
 	return c.JSON(http.StatusOK, response.UserResponseFormat{
 		BusinessPartner: string(rune(result.BusinessPartner)),
@@ -196,7 +241,10 @@ func DeleteUser(c echo.Context) error {
 	param := &DeleteUserParam{}
 	err := c.Bind(param)
 	if err != nil {
-		return c.JSON(response.BadRequestRes.Code, response.BadRequestRes)
+		return c.JSON(response.BadRequestRes.Code, response.Format{
+			Code:    response.BadRequestRes.Code,
+			Message: response.BadRequestRes.Message,
+		})
 	}
 	loginID := c.Param("login_id")
 
@@ -204,27 +252,42 @@ func DeleteUser(c echo.Context) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.Logger().Printf("Login id is not found: %s", loginID)
-			return c.JSON(response.NotFoundErrRes.Code, response.NotFoundErrRes)
+			return c.JSON(response.NotFoundErrRes.Code, response.Format{
+				Code:    response.NotFoundErrRes.Code,
+				Message: response.NotFoundErrRes.Message,
+			})
 		} else {
 			c.Logger().Printf("Failed to db access: %v", err)
-			return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+			return c.JSON(response.InternalErrRes.Code, response.Format{
+				Code:    response.InternalErrRes.Code,
+				Message: response.InternalErrRes.Message,
+			})
 		}
 	}
 	if result != nil && result.IsDeleted() {
 		c.Logger().Print("User is already deleted.")
-		return c.JSON(response.Conflict.Code, response.Conflict.Message)
+		return c.JSON(response.Conflict.Code, response.Format{
+			Code:    response.Conflict.Code,
+			Message: response.Conflict.Message,
+		})
 	}
 
 	// authenticate password.
 	if !*result.IsEncrypt {
 		if result.Password != param.Password {
 			c.Logger().Print("Failed to login due to incorrect password")
-			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.Format{
+				Code:    response.UnauthorizedRes.Code,
+				Message: response.UnauthorizedRes.Message,
+			})
 		}
 	} else {
 		if err := crypto.CompareHashAndPassword(result.Password, param.Password); err != nil {
 			c.Logger().Printf("Failed to login: %v", err)
-			return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
+			return c.JSON(response.UnauthorizedRes.Code, response.Format{
+				Code:    response.UnauthorizedRes.Code,
+				Message: response.UnauthorizedRes.Message,
+			})
 		}
 	}
 	now := time.Now()

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"data-platform-authenticator/pkg/db"
+
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
@@ -39,6 +40,13 @@ func (u *User) Login() error {
 
 func (u *User) GetByLoginID(loginID string) (*User, error) {
 	result := db.ConPool.Con.Model(u).Where("LoginID = ?", loginID).First(u)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return u, nil
+}
+func (u *User) GetByLoginIdAndBusinessPartner(loginID string, businessPartner int) (*User, error) {
+	result := db.ConPool.Con.Model(u).Where("( LoginID, BusinessPartner ) = ( ?, ? )", loginID, businessPartner).First(u)
 	if result.Error != nil {
 		return nil, result.Error
 	}
