@@ -1,6 +1,6 @@
 module data-platform-authenticator
 
-go 1.18
+go 1.19
 
 require (
 	github.com/form3tech-oss/jwt-go v3.2.5+incompatible

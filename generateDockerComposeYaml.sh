@@ -1,7 +1,5 @@
 #!/bin/bash
 
-privateKey=$(cat private.pem)
-publicKey=$(cat public.pem)
 mysqlUsername=$(jq -r .mysql.username env.json)
 mysqlUserPassword=$(jq -r .mysql.password env.json)
 authenticatorPort=$(jq -r .authenticator.port env.json)

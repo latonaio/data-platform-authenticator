@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"net/mail"
 	"strings"
 	"time"
 
@@ -38,15 +39,8 @@ func (u *User) Login() error {
 	return nil
 }
 
-func (u *User) GetByLoginID(loginID string) (*User, error) {
-	result := db.ConPool.Con.Model(u).Where("LoginID = ?", loginID).First(u)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return u, nil
-}
-func (u *User) GetByLoginIdAndBusinessPartner(loginID string, businessPartner int) (*User, error) {
-	result := db.ConPool.Con.Model(u).Where("( LoginID, BusinessPartner ) = ( ?, ? )", loginID, businessPartner).First(u)
+func (u *User) GetByEmailAddress(EmailAddress string) (*User, error) {
+	result := db.ConPool.Con.Model(u).Where("EmailAddress = ?", EmailAddress).First(u)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -62,9 +56,14 @@ func (u *User) User() *User {
 }
 
 func (u *User) SetUser(user *User) {
-	u.LoginID = user.LoginID
+	u.EmailAddress = user.EmailAddress
 	u.BusinessPartner = user.BusinessPartner
+	u.BusinessPartnerName = user.BusinessPartnerName
 	u.Password = user.Password
+	u.BusinessUserFirstName = user.BusinessUserFirstName
+	u.BusinessUserLastName = user.BusinessUserLastName
+	u.BusinessUserFullName = user.BusinessUserFullName
+	u.Language = user.Language
 	u.Qos = user.Qos
 	u.IsEncrypt = user.IsEncrypt
 	//u.CreatedAt = user.CreatedAt
@@ -81,16 +80,16 @@ func (u *User) NeedsValidation() bool {
 }
 
 func (u User) Validate() error {
-	const minLoginIDLength = 6
-	const maxLoginIDLength = 30
+	const minEmailAddressLength = 3
+	const maxEmailAddressLength = 200
 	const minPasswordLength = 8
 	const maxPasswordLength = 30
 
 	return validation.ValidateStruct(&u,
-		validation.Field(&u.LoginID,
+		validation.Field(&u.EmailAddress,
 			validation.Required,
-			validation.Length(minLoginIDLength, maxLoginIDLength),
-			validation.By(UsableString),
+			validation.Length(minEmailAddressLength, maxEmailAddressLength),
+			validation.By(UsableEmailAddress),
 		),
 		validation.Field(&u.Password,
 			validation.Required,
@@ -98,7 +97,7 @@ func (u User) Validate() error {
 			validation.By(UsableString),
 			validation.By(ContainsUppercase),
 			validation.By(ContainsLowercase),
-			validation.By(notInclude(u.LoginID)),
+			validation.By(notInclude(u.EmailAddress)),
 		),
 	)
 }
@@ -153,6 +152,17 @@ func UsableString(value interface{}) error {
 	return nil
 }
 
+func UsableEmailAddress(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return errors.New("failed to cast string")
+	}
+	if !usableEmailAddress(str) {
+		return errors.New("contains unusable characters")
+	}
+	return nil
+}
+
 func containsUppercase(str string) bool {
 	for _, r := range str {
 		if 'A' <= r && r <= 'Z' {
@@ -197,4 +207,9 @@ func usableString(str string) bool {
 		return false
 	}
 	return true
+}
+
+func usableEmailAddress(emailAddress string) bool {
+	_, err := mail.ParseAddress(emailAddress)
+	return err == nil
 }

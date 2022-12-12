@@ -13,11 +13,16 @@ import (
 )
 
 type UserParam struct {
-	LoginID         string `json:"login_id" form:"login_id"`
-	BusinessPartner int    `json:"business_partner" form:"business_partner"`
-	Password        string `json:"password" form:"password"`
-	Qos             string `json:"qos" form:"qos"`
-	IsEncrypt       bool   `json:"is_encrypt" form:"is_encrypt"`
+	EmailAddress          string `json:"email_address" form:"email_address"`
+	BusinessPartner       int    `json:"business_partner" form:"business_partner"`
+	BusinessPartnerName   string `json:"business_partner_name" form:"business_partner_name"`
+	Password              string `json:"password" form:"password"`
+	BusinessUserFirstName string `json:"business_user_first_name" form:"business_user_first_name"`
+	BusinessUserLastName  string `json:"business_user_last_name" form:"business_user_last_name"`
+	BusinessUserFullName  string `json:"business_user_full_name" form:"business_user_full_name"`
+	Language              string `json:"language" form:"language"`
+	Qos                   string `json:"qos" form:"qos"`
+	IsEncrypt             bool   `json:"is_encrypt" form:"is_encrypt"`
 }
 
 func RegisterUser(c echo.Context) error {
@@ -33,10 +38,15 @@ func RegisterUser(c echo.Context) error {
 
 	// validate input fields.
 	unverifiedUser := &models.User{
-		BusinessPartner: param.BusinessPartner,
-		LoginID:         param.LoginID,
-		Password:        param.Password,
-		Qos:             models.ToQos(param.Qos),
+		BusinessPartner:       param.BusinessPartner,
+		BusinessPartnerName:   param.BusinessPartnerName,
+		EmailAddress:          param.EmailAddress,
+		Password:              param.Password,
+		BusinessUserFirstName: param.BusinessUserFirstName,
+		BusinessUserLastName:  param.BusinessUserLastName,
+		BusinessUserFullName:  param.BusinessUserFullName,
+		Language:              param.Language,
+		Qos:                   models.ToQos(param.Qos),
 	}
 	if unverifiedUser.NeedsValidation() {
 		if err := unverifiedUser.Validate(); err != nil {
@@ -50,7 +60,7 @@ func RegisterUser(c echo.Context) error {
 
 	// check registration status of login id.
 	user := models.NewUser()
-	result, err := user.GetByLoginID(param.LoginID)
+	result, err := user.GetByEmailAddress(param.EmailAddress)
 	if result != nil && err == nil {
 		c.Logger().Printf("Login id is already used")
 		return c.JSON(response.Conflict.Code, response.Format{
@@ -60,12 +70,17 @@ func RegisterUser(c echo.Context) error {
 	}
 
 	userImp := &models.User{
-		BusinessPartner: param.BusinessPartner,
-		LoginID:         param.LoginID,
-		Password:        param.Password,
-		Qos:             unverifiedUser.Qos,
-		IsEncrypt:       &param.IsEncrypt,
-		LastLoginAt:     nil,
+		BusinessPartner:       param.BusinessPartner,
+		BusinessPartnerName:   param.BusinessPartnerName,
+		EmailAddress:          param.EmailAddress,
+		Password:              param.Password,
+		BusinessUserFirstName: param.BusinessUserFirstName,
+		BusinessUserLastName:  param.BusinessUserLastName,
+		BusinessUserFullName:  param.BusinessUserFullName,
+		Language:              param.Language,
+		Qos:                   unverifiedUser.Qos,
+		IsEncrypt:             &param.IsEncrypt,
+		LastLoginAt:           nil,
 	}
 
 	// encrypt password
@@ -114,10 +129,10 @@ func UpdateUser(c echo.Context) error {
 	}
 
 	// check existence of user.
-	result, err := models.NewUser().GetByLoginID(c.Param("login_id"))
+	result, err := models.NewUser().GetByEmailAddress(c.Param("email_address"))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.Logger().Printf("Login id is not found: %s", param.LoginID)
+			c.Logger().Printf("Email Address is not found: %s", param.EmailAddress)
 			return c.JSON(response.NotFoundErrRes.Code, response.Format{
 				Code:    response.NotFoundErrRes.Code,
 				Message: response.NotFoundErrRes.Message,
@@ -159,7 +174,7 @@ func UpdateUser(c echo.Context) error {
 
 	userImp := &models.User{
 		BusinessPartner: param.BusinessPartner,
-		LoginID:         param.LoginID,
+		EmailAddress:    param.EmailAddress,
 		Password:        param.Password,
 		Qos:             models.ToQos(param.Qos),
 		IsEncrypt:       &param.IsEncrypt,
@@ -200,11 +215,11 @@ func UpdateUser(c echo.Context) error {
 }
 
 func GetUser(c echo.Context) error {
-	loginID := c.Param("login_id")
-	result, err := models.NewUser().GetByLoginID(loginID)
+	EmailAddress := c.Param("email_address")
+	result, err := models.NewUser().GetByEmailAddress(EmailAddress)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.Logger().Printf("Login id is not found: %s", loginID)
+			c.Logger().Printf("Email Address is not found: %s", EmailAddress)
 			return c.JSON(response.NotFoundErrRes.Code, response.Format{
 				Code:    response.NotFoundErrRes.Code,
 				Message: response.NotFoundErrRes.Message,
@@ -224,9 +239,15 @@ func GetUser(c echo.Context) error {
 			Message: response.Conflict.Message,
 		})
 	}
-	return c.JSON(http.StatusOK, response.UserResponseFormat{
-		BusinessPartner: string(rune(result.BusinessPartner)),
-		LoginID:         result.LoginID,
+
+	return c.JSON(http.StatusOK, response.UserDetailResponseFormat{
+		EmailAddress:          result.EmailAddress,
+		BusinessPartner:       result.BusinessPartner,
+		BusinessPartnerName:   result.BusinessPartnerName,
+		BusinessUserFirstName: result.BusinessUserFirstName,
+		BusinessUserLastName:  result.BusinessUserLastName,
+		BusinessUserFullName:  result.BusinessUserFullName,
+		Language:              result.Language,
 	})
 }
 
@@ -246,12 +267,12 @@ func DeleteUser(c echo.Context) error {
 			Message: response.BadRequestRes.Message,
 		})
 	}
-	loginID := c.Param("login_id")
+	EmailAddress := c.Param("email_address")
 
-	result, err := models.NewUser().GetByLoginID(loginID)
+	result, err := models.NewUser().GetByEmailAddress(EmailAddress)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.Logger().Printf("Login id is not found: %s", loginID)
+			c.Logger().Printf("Email Address is not found: %s", EmailAddress)
 			return c.JSON(response.NotFoundErrRes.Code, response.Format{
 				Code:    response.NotFoundErrRes.Code,
 				Message: response.NotFoundErrRes.Message,
@@ -291,7 +312,7 @@ func DeleteUser(c echo.Context) error {
 		}
 	}
 	now := time.Now()
-	userImp := &models.User{ID: result.ID, DeletedAt: &now}
+	userImp := &models.User{EmailAddress: result.EmailAddress, DeletedAt: &now}
 	if err := userImp.Update(); err != nil {
 		return err
 	}

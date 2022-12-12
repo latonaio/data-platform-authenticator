@@ -8,13 +8,7 @@ authenticator は、データ連携基盤において、任意のアプリケー
 
 ## 事前準備
 本マイクロサービスは、認証情報を維持管理するためのDBとして、MySQLを利用します。
-デフォルトでは Users テーブルを参照しますが、configs/configs.yamlに対象テーブルを指定していただければ、指定されたテーブル内容を参照します。  
-この場合 id(int),login_id(string),password(string) のカラムが必ず存在することが必要です。
-
-kubectlの事前インストールが必要です
-```shell
-$ brew install kubectl
-```
+デフォルトでは data_platform_authenticator_business_user_data テーブルを参照しますが、configs/configs.yamlに対象テーブルを指定していただければ、指定されたテーブル内容を参照します。
 
 ## セットアップ
 1. リポジトリをクローンする。
@@ -23,92 +17,38 @@ $ git clone https://github.com/latonaio/data-platform-authenticator.git
 $ cd data-platform-authenticator
 ```
 
-2. `sh scripts/setup-configs.sh` を実行する。   
-   ※ shellscript内での具体的な処理内容は以下の通り。
+2. 秘密鍵を生成する。  
+
 ```
 # 秘密鍵の生成 (JWT:JSON Web Token の署名に必要)
-$ make generate-key-pair
+$ make generate-pem-key-pair // 秘密鍵と公開鍵の生成
 
-# configs/configs.yamlの設定を編集
-# HOST_NAME, PORT, DB_USER_NAME, DB_USER_PASSWORDを変更する
-database:
-  host_name: HOST_NAME
-  port: PORT
-  user_name: DB_USER_NAME
-  user_password: DB_USER_PASSWORD
-  name: Authenticator # database name
-  table_name: Users # table name
-
-# configs/configs.yamlの設定を編集
-# private_key に生成した秘密鍵をコピペする
-private_key: |-
-  -----BEGIN RSA PRIVATE KEY-----
-  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXX
-  (中略)
-  XXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXX=
-  -----END RSA PRIVATE KEY-----
+# 環境変数の設定項目
+DATA_PLATFORM_AUTHENTICATOR_MYSQL_KUBE・・・Host名
+MYSQL_PORT・・・mysql のポート番号
+UserName・・・mysql のユーザー名
+UserPassword・・・mysql のパスワード
+MaxOpenCon・・・mysql の最大接続数
+MaxIdleCon・・・mysql の最大アイドル接続数
+MaxLifeTime・・・mysql の最大ライフタイム
+Name・・・mysql のデータベース名
+TableName・・・mysql のテーブル名
+EXP・・・JWTの有効期限
+AUTHENTICATOR_PRIVATE_KEY・・・秘密鍵
+AUTHENTICATOR_PUBLIC_KEY・・・公開鍵
 ```
-3. Docker Imageの生成
-```
-$ make docker-build
-```
-
-## 起動方法
-data-platform-authenticatorはaion-core上で稼働します。したがって、[aion-service-definitions](https://bitbucket.org/latonaio/aion-service-definitions/src/master/)にある、aion-coreのマニフェストファイルであるservices.ymlにdata-platform-authenticatorが起動するように設定する必要があります。記入例は以下の通りです。
-
-```
-microservices:
-  data-platform-authenticator:         # サービス名
-    startup: yes         # AION起動時に起動
-    always: yes          # 常時起動
-    scale: 1             # 複数同時に起動させない
-    network: NodePort
-    ports:
-    - name: authenticator
-      protocol: TCP
-      port: 50500         # kube内のPod間で通信する際に使うポート番号
-      nodePort: 30500     # kube外からの通信に必要なポート番号
-```
-
-## データベース管理
-データベースの migration には goose を使用します。
-下記コマンドで goose をインストールしてください
-```
-$ go get bitbucket.org/liamstask/goose/cmd/goose
-```
-
-goose のデータベース接続設定は `db/dbconf.yml` に記載されています。必要に応じて書き換えてください。
-また、デフォルトで使用するデータベースのテーブルは `db/migrations/xxxxx_createUsersTable.sql (最も古いもの)` に定義されています。
-
-migration に関するコマンドは以下です。
-
-```
-# 疎通確認
-$ goose status
-
-# マイグレーション
-$ goose up
-
-# ロールバック
-$ goose down
-
-# マイグレーションファイルの作成
-$ goose create XXXXXX sql
-```
-
-データベースのスキーマを変更する場合は、マイグレーションファイルを作成し SQL を記述後マイグレーションを実行してください。
 
 ## モデル定義
-### user
-user は下記の項目を保持しています。より厳密な定義を知りたい場合は DB 定義を確認してください。
+### data_platform_authenticator_business_user_data テーブル
+より厳密な定義を知りたい場合は DB 定義を確認してください。
 
-| name | description |
-| --- | --- |
-| login_id | ログイン ID |
-| password | パスワード |
-| qos | quality of service|
+```
+EmailAddress・・・メールアドレス
+Password・・・パスワード
+qos・・・quality of service
+```
 
-`login_id`, `password` には入力規則があります。詳しくは入力規則の項目を参照してください。
+`password` には入力規則があります。詳しくは入力規則の項目を参照してください。
 
 `qos` は現状 `default`、`raw` の二つの値のどちらかを登録できます。
 入力しない場合や、これら二つ以外の値を登録しようとすると `default` が設定されます。
@@ -123,53 +63,53 @@ Authenticatorでは以下のAPIが利用できます。
 #### リクエスト
 ユーザー登録には下記のパラメータを指定して、 POST リクエストを送信してください。
 
-| name | description |
-| --- | --- |
-| login_id | ユーザを識別する id (必須) |
-| password | ユーザ認証を行う password (必須) |
-| qos | qos の値を指定します。デフォルトでは "default" が設定されます。|
+| name          | description |
+|---------------| --- |
+| email_address | ユーザを識別する id (必須) |
+| password      | ユーザのパスワード (必須) |
+| qos           | qos の値を指定します。デフォルトでは "default" が設定されます。 |
 
-login_id と password の入力規則に関しては 入力規則 のセクションを参照してください
+Password の入力規則に関しては 入力規則 のセクションを参照してください
 
 ```
 POST /users
 Origin: http://{{host_name}}
 Content-Type: application/x-www-form-urlencoded
 
-login_id=Sample_user&password=OK_password&qos=default
+email_address=test@test.co.jp&password=OK_password&qos=default
 ```
 
 ```
-curl -X POST http://{{host_name}}/users -d login_id=Sample_user -d password=OK_password -d qos=default
+curl -X POST http://{{host_name}}/users -d email_address=test@test.co.jp -d password=OK_password -d qos=default
 ```
 
 ```
-curl -X POST http://{{host_name}}/users -d login_id=sampleuser -d password=okpassword -d qos=raw
+curl -X POST http://{{host_name}}/users -d email_address=test@test.co.jp -d password=okpassword -d qos=raw
 ```
 
 #### レスポンス
 authenticator はリクエストに対し下記のいずれかの応答をします。
 
-| status code | description |
-| --- | --- |
-| 200 | ユーザーの登録に成功 |
-| 400 | リクエストパラメータが不正 (入力規則を満たしているか確認してください)|
-| 409 | login_id が既に登録済み or 削除されたユーザ |
-| 500 | サーバー内エラー |
+| status code | description                          |
+| --- |--------------------------------------|
+| 200 | ユーザーの登録に成功                           |
+| 400 | リクエストパラメータが不正 (入力規則を満たしているか確認してください) |
+| 409 | email_address が既に登録済み or 削除されたユーザ    |
+| 500 | サーバー内エラー                             |
 
-### GET /users/login_id/{{login_id}}
+### GET /users/login_id/{{email_address}}
 ユーザー情報を取得します。
 
 #### リクエスト
 ユーザー情報の取得に GET リクエストを送信してください。
 
 ```http_request
-GET /users/login_id/{{logain_id}}
+GET /users/login_id/{{email_address}}
 Origin: http://{{host_name}}
 ```
 
 ```
-curl -X GET http://{{host_name}}/users/login_id/{{logain_id}}
+curl -X GET http://{{host_name}}/users/login_id/{{email_address}}
 ```
 
 #### レスポンス
@@ -184,11 +124,7 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 
 ユーザーが登録されている場合、ユーザー情報を返します。
 
-```response-example
-{"login_id":"xxxxxx"}
-```
-
-### PUT /users/login_id/{{login_id}}
+### PUT /users/login_id/{{email_address}}
 ユーザー更新を行います。
 
 #### リクエスト
@@ -197,11 +133,11 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 | name | description |
 | --- | --- |
 | old_password | 変更前の password (必須) |
-| login_id | ユーザを識別する id ( 指定しない場合は更新されません ) |
+| email_address | ユーザを識別する id ( 指定しない場合は更新されません ) |
 | password | ユーザ認証を行う password ( 指定しない場合は更新されません ) |
 | qos | qos の値 ( 指定しない場合は更新されません ) |
 
-login_id と password の入力規則に関しては 入力規則 のセクションを参照してください。
+password の入力規則に関しては 入力規則 のセクションを参照してください。
 また、更新の際には old_password に更新前のパスワードを指定し、認可する必要があります。
 
 ```http_request
@@ -209,11 +145,11 @@ PUT /users/login_id/{{logain_id}}
 Origin: http://{{host_name}}
 Content-Type: application/x-www-form-urlencoded
 
-old_password=OK_password&login_id=sampleuser&password=okpassword&qos=raw
+old_password=OK_password&email_address=test@test.co.jp&password=okpassword&qos=raw
 ```
 
 ```
-curl -X PUT http://{{host_name}}/users/login_id/{{logain_id}} -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
+curl -X PUT http://{{host_name}}/users/login_id/{{email_address}} -d old_password=OK_password -d email_address=test@test.co.jp -d password=okpassword -d qos=raw
 ```
 
 #### レスポンス
@@ -238,7 +174,7 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 
 | name | description |
 | --- | --- |
-| login_id | ユーザを識別する id (必須) |
+| email_address | ユーザを識別する id (必須) |
 | password | ユーザ認証を行う password (必須) |
 
 ```http_request
@@ -246,11 +182,11 @@ POST /login
 Origin: http://{{host_name}}
 Content-Type: application/x-www-form-urlencoded
 
-login_id=Sample_user&password=OK_password
+email_address=test@test.co.jp&password=OK_password
 ```
 
 ```request_example
-curl -X POST http://{{host_name}}/login -d login_id=Sample_user -d password=OK_password
+curl -X POST http://{{host_name}}/login -d email_address=test@test.co.jp -d password=OK_password
 ```
 
 #### レスポンス
@@ -271,7 +207,7 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 {"jwt":"xxxxx.xxxxx.xxxxx"}
 ```
 
-### POST /users/login_id/{{login_id}}
+### DELETE /users/login_id/{{email_address}}
 ユーザーの削除を行います。内部的にはデータの削除は行われずに、users table の deleted_at の項目に現在時刻が登録されます。
 
 #### リクエスト
@@ -284,7 +220,7 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 password での認証に失敗した場合は削除されません。
 
 ```http_request
-DELETE /users/login_id/{{logain_id}}
+DELETE /users/login_id/{{email_address}}
 Origin: http://{{host_name}}
 Content-Type: application/x-www-form-urlencoded
 
@@ -292,7 +228,7 @@ password=okpassword
 ```
 
 ```
-curl -X DELETE http://{{host_name}}/users/login_id/{{logain_id}} -d password=password
+curl -X DELETE http://{{host_name}}/users/login_id/{{email_address}} -d password=password
 ```
 
 #### レスポンス
@@ -310,7 +246,7 @@ authenticator はリクエストに対し下記のいずれかの応答をしま
 ### 認可
 authenticator サーバーから取得した jwt を認可するには、下記のコマンドで出力される公開鍵を認可サーバーに配置する必要があります。
 ```
-$ make generate-key-pair
+$ make generate-pem-key-pair // 秘密鍵と公開鍵の生成
 ```
 
 認可サーバーでは authenticator サーバーの公開鍵を使用し jwt が改竄されていない事、有効期限切れでない事を確認する必要があります。
@@ -319,10 +255,10 @@ $ make generate-key-pair
 ### JWT
 JET のクレームには下記の項目が含まれています。
 
-| name | description|
-| --- | --- |
-| user_id | ユーザーID |
-| exp | 有効期限 |
+| name          | description |
+|---------------|-------------|
+| email_address | メールアドレス     |
+| exp           | 有効期限        |
 
 ## テスト
 
@@ -330,8 +266,8 @@ JET のクレームには下記の項目が含まれています。
 authorizer のテストの際に秘密鍵、公開鍵のキーペアを使用します。
 下記のコマンドでキーペアを生成し、それぞれを unit テストに直接入力してください。
 
-`$ openssl genrsa 4096 > private.key`
-`$ openssl rsa -pubout < private.key > public.key`
+`$ openssl genrsa 4096 > private.pem`
+`$ openssl rsa -pubout < private.pem > public.pem`
 
 ```
 # pkg/authorizer/authorizer_test.go
@@ -347,86 +283,56 @@ authenticator は JWT の生成に秘密鍵を使用します。
 下記コマンドで生成される秘密鍵を `configs/configs.yaml` の `private_key` 項目にセットしてください
 
 ```
-$ make generate-key-pair
+$ make generate-pem-key-pair
 ```
 
 example: configs/configs.yaml
 
+#### ローカル環境で実行
+docker-compose を採用しております。
+##### 生成した鍵情報から docker-compose 用のテンプレートを作成 
 ```
-server:
-  port: 1323
-  shutdown_wait_time: 1
-database:
-  host_name: mysql
-  port: 3306
-  user_name: xxxxx
-  user_password: xxxxx
-  name: Authenticator # database name
-  table_name: Users # table name 強制指定のため
-  max_open_platform: 10
-  max_idle_platform: 5
-  max_life_time: 24
-jwt:
-  exp: 24 # hour
-private_key: |-
-  -----BEGIN RSA PRIVATE KEY-----
-  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  XXXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXX
-  (中略)
-  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX
-  XXX/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXX/XXXXXXXXXXXXXX
-  -----END RSA PRIVATE KEY-----
+bash generateDockerComposeYaml.sh
 ```
 
-#### ローカル環境で実行 (おすすめ)
-mysql のみ docker-compose で起動し、authenticator をローカル環境で起動することも可能です。
-この場合下記コマンドで authenticator を立ち上げることで、秘密鍵の生成と環境変数へのセットを自動で行います。
-
-`$ make local-run`
-
-`configs/configs.yaml` は下記のように設定してください
+##### mysql の起動
 ```
-database:
-  host_name: localhost
-  port: 3306
-  # 他はそのまま
+docker-compose up data-platform-authenticator-database
 ```
 
-#### ユーザ情報の登録
+##### authenticator の起動
 ```
-curl -X POST http://localhost:50500/users -d login_id=Sample_user -d password=OK_password
-```
-
-#### ユーザ情報の更新
-```
-curl -X PUT http://localhost:50500/users/login_id/Sample_user -d old_password=OK_password -d login_id=sampleuser -d password=okpassword -d qos=raw
+docker-compose up data-platform-authenticator-application
 ```
 
-#### ユーザ情報の削除
+#### 登録
 ```
-curl -X POST http://localhost:50500/users/login_id/Sample_user -d password=OK_password
+curl -X POST http://localhost:{{ ポート番号 }}/users -d email_address=test@test.co.jp -d password=OK_password
 ```
 
-#### ユーザIDの取得
+#### 取得
 ```
-curl -X GET http://localhost:50500/users/login_id/Sample_user
+curl -X GET http://localhost:{{ ポート番号 }}/users/login_id/{{ email_address }}
 ```
 
 #### ログイン
 ```
-curl -X POST http://localhost:50500/login -d login_id=Sample_user -d password=OK_password
+curl -X POST http://localhost:{{ ポート番号 }}/login -d email_address=test@test.co.jp -d password=OK_password
 ```
+
+#### 更新
+```
+curl -X PUT http://localhost:1323/users/login_id/{{ email_address }} -d old_password=OK_password -d email_address=test@test.co.jp -d password=okpassword -d qos=raw
+```
+
+#### 削除
+```
+curl -X POST http://localhost:1323/users/login_id/{{ email_address }} -d password=OK_password
+```
+
 
 ## 入力規則
 user を新規登録する際は下記の入力規則にしたがって登録してください。
-
-### login_id
-
-#### 使用可能文字
-アルファベット（a～z, A〜Z 大文字小文字を区別する）、数字（0～9）、記号(ダッシュ（-）、アンダースコア（_）、アポストロフィ（'）、ピリオド（.）)
-
-#### 文字数制限
-6〜30 文字
 
 ### password
 

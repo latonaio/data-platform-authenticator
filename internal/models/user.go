@@ -9,22 +9,25 @@ type UserIF interface {
 	Register() error
 	Update() error
 	Login() error
-	GetByLoginID(loginID string) (*User, error)
-	GetByLoginIdAndBusinessPartner(loginID string, businessPartner int) (*User, error)
+	GetByEmailAddress(EmailAddress string) (*User, error)
 	NeedsValidation() bool
 }
 
 type User struct {
-	ID              int        `gorm:"primaryKey"`
-	LoginID         string     `gorm:"column:LoginID"`
-	BusinessPartner int        `gorm:"column:BusinessPartner"`
-	Password        string     `gorm:"column:Password"`
-	LastLoginAt     *time.Time `gorm:"column:LastLoginAt"`
-	Qos             Qos        `gorm:"column:Qos"`
-	IsEncrypt       *bool      `gorm:"column:IsEncrypt"`
-	CreatedAt       time.Time  `gorm:"column:CreatedAt"`
-	UpdatedAt       time.Time  `gorm:"column:UpdatedAt"`
-	DeletedAt       *time.Time `gorm:"column:DeletedAt"`
+	EmailAddress          string     `gorm:"primaryKey; column:EmailAddress"`
+	BusinessPartner       int        `gorm:"column:BusinessPartner"`
+	BusinessPartnerName   string     `gorm:"column:BusinessPartnerName"`
+	Password              string     `gorm:"column:Password"`
+	LastLoginAt           *time.Time `gorm:"column:LastLoginAt"`
+	Qos                   Qos        `gorm:"column:Qos"`
+	IsEncrypt             *bool      `gorm:"column:IsEncrypt"`
+	CreatedAt             time.Time  `gorm:"column:CreatedAt"`
+	UpdatedAt             time.Time  `gorm:"column:UpdatedAt"`
+	DeletedAt             *time.Time `gorm:"column:DeletedAt"`
+	BusinessUserFirstName string     `gorm:"column:BusinessUserFirstName"`
+	BusinessUserLastName  string     `gorm:"column:BusinessUserLastName"`
+	BusinessUserFullName  string     `gorm:"column:BusinessUserFullName"`
+	Language              string     `gorm:"column:Language"`
 }
 
 const (

@@ -35,7 +35,7 @@ services:
     environment:
       DATA_PLATFORM_AUTHENTICATOR_MYSQL_KUBE: XXXXXXXXX
       MYSQL_PORT: 3306
-      DATA_BASE_NAME: DataPlatformAuthenticatorSQL
+      DATA_BASE_NAME: DataPlatformAuthenticatorMysqlKube
       TABLE_NAME: data_platform_authenticator_business_user_data
       MYSQL_USER: ${MYSQL_USER_NAME}
       MYSQL_PASSWORD: ${MYSQL_USER_PASSWORD}
@@ -46,7 +46,7 @@ services:
       AUTHENTICATOR_PUBLIC_KEY: "${AUTHENTICATOR_PUBLIC_KEY}"
       AUTHENTICATOR_PORT: ${AUTHENTICATOR_PORT}
       SHUT_DOWN_WAIT_TIME: 1
-      EXP: 24
+      EXP: 1
     tty: true
     networks:
       application:

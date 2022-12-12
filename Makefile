@@ -74,8 +74,7 @@ grant-authority:
 
 # データベースを作成する
 create-database:
-	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS DataPlatformAuthenticatorMySQLKube DEFAULT CHARACTER SET UTF8;\""
-
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -e \"CREATE DATABASE IF NOT EXISTS DataPlatformAuthenticatorMysqlKube DEFAULT CHARACTER SET UTF8;\""
 
 # データベース一覧を表示する
 show-databases:
@@ -83,7 +82,7 @@ show-databases:
 
 # テーブルを作成する
 create-table:
-	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -D DataPlatformAuthenticatorMySQLKube < data-platform-authenticator-sql-business-user-data.sql"
+	docker exec -it $(CONTAINER_NAME) sh -c "mysql -u$(DB_USER_NAME) -p$(DB_USER_PASSWORD) -D DataPlatformAuthenticatorMysqlKube < data-platform-authenticator-sql-business-user-data.sql"
 
 # ユーザーを削除する
 delete-user:

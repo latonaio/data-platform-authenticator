@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,9 +18,8 @@ import (
 )
 
 type UserLoginParam struct {
-	LoginID         string `json:"login_id" form:"login_id"`
-	Password        string `json:"password" form:"password"`
-	BusinessPartner int    `json:"business_partner" form:"business_partner"`
+	EmailAddress string `json:"email_address" form:"email_address"`
+	Password     string `json:"password" form:"password"`
 }
 
 var jwtExp int64
@@ -50,7 +50,8 @@ func EnsureUser(c echo.Context) error {
 		})
 	}
 	user := models.NewUser()
-	result, err := user.GetByLoginIdAndBusinessPartner(param.LoginID, param.BusinessPartner)
+	result, err := user.GetByEmailAddress(param.EmailAddress)
+
 	if err != nil {
 		return c.JSON(response.NotFoundErrRes.Code, response.Format{
 			Code:    response.NotFoundErrRes.Code,
@@ -78,10 +79,8 @@ func EnsureUser(c echo.Context) error {
 	// generate JWT
 	token := jwt.New(jwt.SigningMethodRS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["user_id"] = user.User().ID
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(jwtExp)).Unix()
-
-	//privateKeyPem, err := ioutil.ReadFile("private.pem")
+	claims["email_address"] = user.User().EmailAddress
+	claims["exp"] = strconv.FormatInt(time.Now().Add(time.Hour*time.Duration(jwtExp)).Unix(), 10)
 
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(privateKeyPem))
 	if err != nil {
@@ -128,8 +127,6 @@ func VerifyJWTToken(c echo.Context) error {
 		}
 	}
 
-	//publicKeyPem, err := ioutil.ReadFile("public.pem")
-
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeyPem))
 	if err != nil {
 		c.Logger().Printf("Failed to parse public key: %v", err)
@@ -144,7 +141,18 @@ func VerifyJWTToken(c echo.Context) error {
 	})
 
 	claims := parsedToken.Claims.(jwt.MapClaims)
-	claimsString := fmt.Sprintf("%v", claims["user_id"])
 
-	return c.JSON(http.StatusOK, response.UserResponseFormat{LoginID: claimsString})
+	intUnix, err := strconv.Atoi(claims["exp"].(string))
+	if err != nil {
+		c.Logger().Printf("Failed to parse claims exp: %v", err)
+		return c.JSON(response.InternalErrRes.Code, response.InternalErrRes)
+	}
+
+	if time.Now().Unix() > int64(intUnix) {
+		return c.JSON(response.UnauthorizedRes.Code, response.UnauthorizedRes)
+	}
+
+	return c.JSON(http.StatusOK, response.UserVerifyResponseFormat{
+		EmailAddress: fmt.Sprintf("%v", claims["email_address"]),
+	})
 }

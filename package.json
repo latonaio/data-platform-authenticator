@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/latonaio/data-platform-authenticator.git"
+    "url": "git+ssh://git@github.com/latonaio/data-connection-authenticator.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/latonaio/data-platform-authenticator/issues"
+    "url": "https://github.com/latonaio/data-connection-authenticator/issues"
   },
-  "homepage": "https://github.com/latonaio/data-platform-authenticator#readme",
+  "homepage": "https://github.com/latonaio/data-connection-authenticator#readme",
   "devDependencies": {
     "json5": "^2.2.1"
   }
