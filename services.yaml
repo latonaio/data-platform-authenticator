@@ -35,16 +35,6 @@ spec:
               value: "data_platform_authenticator_business_user_data"
             - name: "EXP"
               value: "1"
-#            - name: AUTHENTICATOR_PRIVATE_KEY
-#              valueFrom:
-#                secretKeyRef:
-#                  name: env-secret
-#                  key: AUTHENTICATOR_PRIVATE_KEY
-#            - name: AUTHENTICATOR_PUBLIC_KEY
-#              valueFrom:
-#                secretKeyRef:
-#                  name: env-secret
-#                  key: AUTHENTICATOR_PUBLIC_KEY
           envFrom:
             - configMapRef:
                 name: env-config
